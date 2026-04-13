@@ -8,31 +8,33 @@
         :root { --gold: #f1c40f; --win: #27ae60; --loss: #c0392b; --accent: #3498db; }
         body { margin: 0; font-family: 'Arial Black', sans-serif; background: #000; color: white; overflow: hidden; touch-action: none; text-transform: uppercase; }
         
+        /* Orientation Guard */
         #rotate-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         @media (orientation: portrait) { #rotate-overlay { display: flex; } }
 
         .screen { display: none; width: 100vw; height: 100vh; flex-direction: column; align-items: center; justify-content: center; position: absolute; background: radial-gradient(circle, #2c3e50 0%, #000000 100%); }
         .active { display: flex; }
         
+        /* UI Buttons & Stats */
         button { padding: 12px 20px; margin: 5px; font-size: 14px; cursor: pointer; background: #e67e22; border: 3px solid #d35400; border-radius: 10px; color: white; font-weight: bold; }
         .top-bar { position: absolute; top: 10px; width: 95%; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
         .stat-box { background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 15px; border: 2px solid var(--gold); }
 
         /* Shop Grid */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 90%; max-height: 55%; overflow-y: auto; }
-        .card { background: #34495e; padding: 10px; border-radius: 12px; border: 3px solid #555; text-align: center; font-size: 12px; }
-        .card.selected { border-color: var(--gold); background: #2c3e50; }
+        .card { background: #34495e; padding: 10px; border-radius: 12px; border: 3px solid #555; text-align: center; }
+        .card.selected { border-color: var(--gold); background: #2c3e50; box-shadow: 0 0 10px var(--gold); }
 
-        /* Arena UI */
+        /* Arena Elements */
         #gameCanvas { background: #2ecc71; }
-        .joy-area { position: absolute; bottom: 25px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); }
-        .knob { width: 40px; height: 40px; background: rgba(255,255,255,0.7); border-radius: 50%; position: absolute; top: 30px; left: 30px; pointer-events: none; }
+        .joy-area { position: absolute; bottom: 30px; width: 110px; height: 110px; background: rgba(255,255,255,0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); z-index: 50; }
+        .knob { width: 45px; height: 45px; background: rgba(255,255,255,0.7); border-radius: 50%; position: absolute; top: 32.5px; left: 32.5px; pointer-events: none; }
         
-        #super-btn { position: absolute; bottom: 130px; right: 40px; width: 60px; height: 60px; background: #555; border-radius: 50%; border: 4px solid #333; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; opacity: 0.5; }
-        #super-btn.ready { background: #f1c40f; border-color: #fff; opacity: 1; box-shadow: 0 0 15px #f1c40f; }
+        #super-btn { position: absolute; bottom: 150px; right: 50px; width: 70px; height: 70px; background: #444; border-radius: 50%; border: 4px solid #222; display: flex; align-items: center; justify-content: center; font-size: 10px; z-index: 60; opacity: 0.5; }
+        #super-btn.ready { background: #f1c40f; border-color: #fff; opacity: 1; box-shadow: 0 0 20px #f1c40f; }
 
         #battleResult { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .scroll-list { width: 90%; height: 60%; overflow-y: auto; background: rgba(0,0,0,0.6); border-radius: 10px; padding: 5px; }
+        .scroll-list { width: 90%; height: 60%; overflow-y: auto; background: rgba(0,0,0,0.6); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -45,7 +47,7 @@
             <div class="stat-box" id="m-coins">💰 0</div>
         </div>
         <h1>POCKET DUELISTS</h1>
-        <button onclick="showScreen('arena')" style="font-size: 28px; width: 200px; background: var(--win);">BATTLE</button>
+        <button onclick="showScreen('arena')" style="font-size: 30px; padding: 20px 50px; background: var(--win);">BATTLE</button>
         <div style="display:flex;">
             <button onclick="showScreen('pockets')">POCKETS</button>
             <button onclick="showScreen('trophyRoad')">ROAD</button>
@@ -54,27 +56,27 @@
     </div>
 
     <div id="pockets" class="screen">
-        <h2>POCKETS SHOP</h2>
+        <h2>HERO SHOP</h2>
         <div id="pockets-grid" class="grid"></div>
         <button onclick="showScreen('menu')">BACK</button>
     </div>
 
     <div id="trophyRoad" class="screen">
-        <h2>🏆 ROAD</h2>
+        <h2>🏆 TROPHY ROAD</h2>
         <div id="road-list" class="scroll-list"></div>
         <button onclick="showScreen('menu')">BACK</button>
     </div>
 
     <div id="battleLog" class="screen">
-        <h2>📜 LOG</h2>
+        <h2>📜 BATTLE LOG</h2>
         <div id="log-list" class="scroll-list"></div>
         <button onclick="showScreen('menu')">BACK</button>
     </div>
 
     <div id="arena" class="screen">
         <canvas id="gameCanvas"></canvas>
-        <div id="left-joy" class="joy-area" style="left: 40px;"><div id="l-knob" class="knob"></div></div>
-        <div id="right-joy" class="joy-area" style="right: 40px;"><div id="r-knob" class="knob"></div></div>
+        <div id="left-joy" class="joy-area" style="left: 50px;"><div id="l-knob" class="knob"></div></div>
+        <div id="right-joy" class="joy-area" style="right: 50px;"><div id="r-knob" class="knob"></div></div>
         <div id="super-btn" onclick="useSuper()">SUPER</div>
         
         <div id="battleResult">
@@ -85,7 +87,7 @@
     </div>
 
     <script>
-        // DATA & STORAGE
+        // --- GAME DATA ---
         let trophies = parseInt(localStorage.getItem('pd_trophies')) || 0;
         let coins = parseInt(localStorage.getItem('pd_coins')) || 0;
         let ownedPockets = JSON.parse(localStorage.getItem('pd_owned')) || ['Shelly'];
@@ -95,17 +97,16 @@
 
         const pocketsData = [
             { name: 'Shelly', color: '#3498db', speed: 4, cost: 0, ult: 'Spread' },
-            { name: 'Colt', color: '#e74c3c', speed: 3.5, cost: 100, ult: 'Rapid' },
+            { name: 'Colt', color: '#e74c3c', speed: 3.8, cost: 100, ult: 'Rapid' },
             { name: 'Crow', color: '#8e44ad', speed: 5.5, cost: 250, ult: 'Boost' },
             { name: 'Leon', color: '#2ecc71', speed: 6, cost: 500, ult: 'Invis' }
         ];
 
-        // ENGINE VARS
+        // --- ENGINE VARS ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let player, bot, bullets, obstacles, bushes, gameActive = false;
-        let superCharge = 0;
-        let touches = {};
+        let player, bot, bullets = [], obstacles = [], bushes = [], gameActive = false;
+        let superCharge = 0, touches = {};
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -129,6 +130,7 @@
             grid.innerHTML = pocketsData.map(p => `
                 <div class="card ${selectedPocket === p.name ? 'selected' : ''}">
                     <strong>${p.name}</strong><br>
+                    <div style="width:30px;height:30px;background:${p.color};margin:5px auto;border-radius:50%"></div>
                     ${ownedPockets.includes(p.name) ? 
                         `<button onclick="selectP('${p.name}')">SELECT</button>` : 
                         `<button onclick="buyP('${p.name}', ${p.cost})">💰 ${p.cost}</button>`}
@@ -143,145 +145,156 @@
             list.innerHTML = "";
             for(let i=20; i<=1000; i+=20) {
                 const isClaimed = claimed.includes(i);
-                list.innerHTML += `<div class="list-item" style="display:flex; justify-content:space-between; padding:10px; background:#2c3e50; margin:5px; border-radius:5px; opacity:${trophies>=i?1:0.5}">
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:15px; background:#34495e; margin:5px; border-radius:8px; opacity:${trophies>=i?1:0.4}">
                     <span>${i} 🏆 - 💰 50</span>
-                    <button onclick="claim(${i})" ${trophies<i||isClaimed?'disabled':''}>${isClaimed?'DONE':'CLAIM'}</button>
+                    <button onclick="claim(${i})" ${trophies<i||isClaimed?'disabled':''}>${isClaimed?'CLAIMED':'CLAIM'}</button>
                 </div>`;
             }
         }
         function claim(i) { coins+=50; claimed.push(i); localStorage.setItem('pd_claimed', JSON.stringify(claimed)); updateUI(); renderRoad(); }
 
         function renderLog() {
-            document.getElementById('log-list').innerHTML = battleLog.slice().reverse().map(l => `<div style="padding:10px; margin:5px; background:#34495e; border-radius:5px;">${l.win?'WIN':'LOSS'} | ${l.change} 🏆</div>`).join('');
+            document.getElementById('log-list').innerHTML = battleLog.slice().reverse().map(l => `<div style="padding:10px; margin:5px; background:#2c3e50; border-radius:5px; border-left:5px solid ${l.win?'#27ae60':'#c0392b'}">${l.win?'WIN':'LOSS'} | ${l.change} 🏆</div>`).join('');
         }
 
-        // INPUT HANDLING (Multi-touch)
-        window.addEventListener('touchstart', e => { Array.from(e.changedTouches).forEach(t => { touches[t.identifier] = { x: t.clientX, y: t.clientY, startX: t.clientX, startY: t.clientY, target: t.target.id }; }); });
-        window.addEventListener('touchmove', e => { Array.from(e.changedTouches).forEach(t => { if(touches[t.identifier]) { touches[t.identifier].x = t.clientX; touches[t.identifier].y = t.clientY; } }); });
-        window.addEventListener('touchend', e => { Array.from(e.changedTouches).forEach(t => { 
-            let touch = touches[t.identifier];
-            if(touch && touch.target === 'right-joy') {
-                let dist = Math.sqrt((touch.x - touch.startX)**2 + (touch.y - touch.startY)**2);
-                if(dist < 20) quickFire(); // QUICKFIRE
-                else {
-                    let angle = Math.atan2(touch.y - touch.startY, touch.x - touch.startX);
-                    shoot(player, angle);
-                }
-            }
-            delete touches[t.identifier]; 
-        }); });
+        // --- INPUT (MULTI-TOUCH) ---
+        window.addEventListener('touchstart', e => {
+            Array.from(e.changedTouches).forEach(t => {
+                const joy = t.target.closest('.joy-area');
+                touches[t.identifier] = { 
+                    startX: t.clientX, startY: t.clientY, 
+                    curX: t.clientX, curY: t.clientY, 
+                    target: joy ? joy.id : null 
+                };
+            });
+        });
 
-        // BATTLE ENGINE
+        window.addEventListener('touchmove', e => {
+            Array.from(e.changedTouches).forEach(t => {
+                if(touches[t.identifier]) {
+                    touches[t.identifier].curX = t.clientX;
+                    touches[t.identifier].curY = t.clientY;
+                }
+            });
+        });
+
+        window.addEventListener('touchend', e => {
+            Array.from(e.changedTouches).forEach(t => {
+                let touch = touches[t.identifier];
+                if(touch && touch.target === 'right-joy') {
+                    let dx = touch.curX - touch.startX;
+                    let dy = touch.curY - touch.startY;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 15) quickFire();
+                    else shoot(player, Math.atan2(dy, dx));
+                    document.getElementById('r-knob').style.transform = 'translate(0,0)';
+                }
+                if(touch && touch.target === 'left-joy') document.getElementById('l-knob').style.transform = 'translate(0,0)';
+                delete touches[t.identifier];
+            });
+        });
+
+        // --- BATTLE LOGIC ---
         function initBattle() {
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             const pData = pocketsData.find(p => p.name === selectedPocket);
-            player = { x: 100, y: canvas.height/2, r: 22, color: pData.color, hp: 100, speed: pData.speed, visible: true };
-            bot = { x: canvas.width-100, y: canvas.height/2, r: 22, color: 'red', hp: 100, speed: 2.5, visible: true };
+            player = { x: 150, y: canvas.height/2, r: 25, color: pData.color, hp: 100, speed: pData.speed, visible: true };
+            bot = { x: canvas.width-150, y: canvas.height/2, r: 25, color: 'red', hp: 100, speed: 2.8, visible: true };
             bullets = []; superCharge = 0;
-            
-            // Map objects
             obstacles = [{x: canvas.width/2-25, y: canvas.height/2-100, w: 50, h: 200}];
-            bushes = [{x: 200, y: 100, w: 100, h: 100}, {x: canvas.width-300, y: canvas.height-200, w: 100, h: 100}];
-            
+            bushes = [{x: 250, y: 150, w: 120, h: 120}, {x: canvas.width-370, y: canvas.height-270, w: 120, h: 120}];
             gameActive = true; gameLoop();
         }
 
-        function quickFire() {
-            let angle = Math.atan2(bot.y - player.y, bot.x - player.x);
-            shoot(player, angle);
-        }
+        function quickFire() { shoot(player, Math.atan2(bot.y - player.y, bot.x - player.x)); }
 
         function useSuper() {
             if(superCharge < 100) return;
             superCharge = 0;
             const pData = pocketsData.find(p => p.name === selectedPocket);
-            if(pData.ult === 'Spread') {
-                for(let i=-0.5; i<=0.5; i+=0.25) shoot(player, Math.atan2(bot.y-player.y, bot.x-player.x) + i);
-            } else if(pData.ult === 'Boost') {
-                player.speed *= 2; setTimeout(() => player.speed /= 2, 4000);
-            }
+            if(pData.ult === 'Spread') { for(let a=-0.4; a<=0.4; a+=0.2) shoot(player, Math.atan2(bot.y-player.y, bot.x-player.x)+a); }
+            else if(pData.ult === 'Boost') { player.speed *= 1.8; setTimeout(()=>player.speed /= 1.8, 5000); }
+            else if(pData.ult === 'Rapid') { let c=0; let iv = setInterval(()=>{shoot(player, Math.atan2(bot.y-player.y, bot.x-player.x)); c++; if(c>5)clearInterval(iv)}, 100); }
             document.getElementById('super-btn').classList.remove('ready');
         }
 
         function shoot(who, angle) {
             bullets.push({ x: who.x, y: who.y, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12, owner: who });
-            who.visible = true; // Reveal if in bush
+            who.visible = true;
         }
 
         function gameLoop() {
             if(!gameActive) return;
             ctx.clearRect(0,0,canvas.width, canvas.height);
 
-            // Controls
-            let joyL = Object.values(touches).find(t => t.target === 'left-joy');
-            let lKnob = document.getElementById('l-knob');
-            if(joyL) {
-                let dx = joyL.x - joyL.startX; let dy = joyL.y - joyL.startY;
-                let dist = Math.min(40, Math.sqrt(dx*dx + dy*dy));
+            // Handle Joysticks
+            Object.values(touches).forEach(t => {
+                let dx = t.curX - t.startX; let dy = t.curY - t.startY;
+                let dist = Math.min(45, Math.sqrt(dx*dx + dy*dy));
                 let angle = Math.atan2(dy, dx);
-                let moveX = Math.cos(angle)*(dist/40)*player.speed;
-                let moveY = Math.sin(angle)*(dist/40)*player.speed;
-                if(!checkWall(player.x + moveX, player.y + moveY)) { player.x += moveX; player.y += moveY; }
-                lKnob.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-            } else { lKnob.style.transform = 'translate(0,0)'; }
 
-            // Logic
-            botAI();
-            updateBullets();
-            checkBushes();
+                if(t.target === 'left-joy') {
+                    let mx = Math.cos(angle)*(dist/45)*player.speed;
+                    let my = Math.sin(angle)*(dist/45)*player.speed;
+                    if(!checkWall(player.x+mx, player.y+my)) { player.x+=mx; player.y+=my; }
+                    document.getElementById('l-knob').style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+                }
+                if(t.target === 'right-joy') {
+                    document.getElementById('r-knob').style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+                    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 4; ctx.beginPath();
+                    ctx.moveTo(player.x, player.y); ctx.lineTo(player.x+Math.cos(angle)*120, player.y+Math.sin(angle)*120); ctx.stroke();
+                }
+            });
 
-            // Render
+            // Bot AI
+            let dBot = Math.sqrt((player.x-bot.x)**2 + (player.y-bot.y)**2);
+            if(dBot > 220 && player.visible) {
+                let a = Math.atan2(player.y-bot.y, player.x-bot.x);
+                bot.x += Math.cos(a)*bot.speed; bot.y += Math.sin(a)*bot.speed;
+            }
+            if(Math.random()<0.015 && player.visible) shoot(bot, Math.atan2(player.y-bot.y, player.x-bot.x));
+
+            // Bullets & Collision
+            bullets.forEach((b, i) => {
+                b.x+=b.vx; b.y+=b.vy;
+                ctx.fillStyle = b.owner === player ? 'white' : '#f1c40f';
+                ctx.beginPath(); ctx.arc(b.x, b.y, 6, 0, Math.PI*2); ctx.fill();
+                if(checkWall(b.x, b.y)) bullets.splice(i,1);
+                let target = b.owner === player ? bot : player;
+                if(Math.sqrt((b.x-target.x)**2 + (b.y-target.y)**2) < target.r) {
+                    target.hp -= 20; bullets.splice(i,1);
+                    if(b.owner === player) superCharge = Math.min(100, superCharge + 25);
+                    if(target.hp <= 0) finish(b.owner === player);
+                }
+            });
+
+            // Visibility
+            player.visible = !bushes.some(b => player.x>b.x && player.x<b.x+b.w && player.y>b.y && player.y<b.y+b.h);
+            bot.visible = !bushes.some(b => bot.x>b.x && bot.x<b.x+b.w && bot.y>b.y && bot.y<b.y+b.h);
+
+            // Draw Map
             bushes.forEach(b => { ctx.fillStyle = '#1b5e20'; ctx.fillRect(b.x, b.y, b.w, b.h); });
             obstacles.forEach(o => { ctx.fillStyle = '#5d4037'; ctx.fillRect(o.x, o.y, o.w, o.h); });
             
-            if(player.visible) drawUnit(player); else { ctx.globalAlpha = 0.3; drawUnit(player); ctx.globalAlpha = 1; }
-            if(bot.visible) drawUnit(bot); else { ctx.globalAlpha = 0.3; drawUnit(bot); ctx.globalAlpha = 1; }
+            ctx.globalAlpha = player.visible ? 1 : 0.4; drawUnit(player);
+            ctx.globalAlpha = bot.visible ? 1 : 0.4; drawUnit(bot);
+            ctx.globalAlpha = 1;
 
-            // Super UI
-            document.getElementById('super-btn').style.background = `linear-gradient(0deg, #f1c40f ${superCharge}%, #555 ${superCharge}%)`;
-            if(superCharge >= 100) document.getElementById('super-btn').classList.add('ready');
+            // Super UI Update
+            const sBtn = document.getElementById('super-btn');
+            sBtn.style.background = `linear-gradient(0deg, #f1c40f ${superCharge}%, #444 ${superCharge}%)`;
+            if(superCharge >= 100) sBtn.classList.add('ready');
 
             requestAnimationFrame(gameLoop);
         }
 
-        function checkWall(nx, ny) {
-            return obstacles.some(o => nx+15 > o.x && nx-15 < o.x+o.w && ny+15 > o.y && ny-15 < o.y+o.h);
-        }
-
-        function checkBushes() {
-            player.visible = !bushes.some(b => player.x > b.x && player.x < b.x+b.w && player.y > b.y && player.y < b.y+b.w);
-            bot.visible = !bushes.some(b => bot.x > b.x && bot.x < b.x+b.w && bot.y > b.y && bot.y < b.y+b.w);
-        }
-
-        function botAI() {
-            let d = Math.sqrt((player.x-bot.x)**2 + (player.y-bot.y)**2);
-            if(d > 200 && player.visible) {
-                let angle = Math.atan2(player.y-bot.y, player.x-bot.x);
-                bot.x += Math.cos(angle)*bot.speed; bot.y += Math.sin(angle)*bot.speed;
-            }
-            if(Math.random() < 0.01 && player.visible) shoot(bot, Math.atan2(player.y-bot.y, player.x-bot.x));
-        }
-
-        function updateBullets() {
-            bullets.forEach((b, i) => {
-                b.x += b.vx; b.y += b.vy;
-                ctx.fillStyle = b.owner === player ? 'white' : 'yellow';
-                ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill();
-
-                if(checkWall(b.x, b.y)) bullets.splice(i, 1);
-                let target = b.owner === player ? bot : player;
-                if(Math.sqrt((b.x-target.x)**2 + (b.y-target.y)**2) < target.r) {
-                    target.hp -= 20; bullets.splice(i, 1);
-                    if(b.owner === player) { superCharge = Math.min(100, superCharge + 34); }
-                    if(target.hp <= 0) finish(b.owner === player);
-                }
-            });
-        }
+        function checkWall(nx, ny) { return obstacles.some(o => nx+15>o.x && nx-15<o.x+o.w && ny+15>o.y && ny-15<o.y+o.h); }
 
         function drawUnit(u) {
             ctx.fillStyle = u.color; ctx.beginPath(); ctx.arc(u.x, u.y, u.r, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = "black"; ctx.fillRect(u.x-20, u.y-35, 40, 6);
-            ctx.fillStyle = "lime"; ctx.fillRect(u.x-20, u.y-35, (u.hp/100)*40, 6);
+            ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = "black"; ctx.fillRect(u.x-25, u.y-45, 50, 8);
+            ctx.fillStyle = u.hp > 30 ? "#2ecc71" : "#e74c3c"; ctx.fillRect(u.x-25, u.y-45, (u.hp/100)*50, 8);
         }
 
         function finish(win) {
@@ -289,7 +302,7 @@
             let change = win ? 10 : -8;
             trophies = Math.max(0, trophies + change);
             battleLog.push({ win, change });
-            localStorage.setItem('pd_log', JSON.stringify(battleLog));
+            localStorage.setItem('pd_log', JSON.stringify(battleLog.slice(-15)));
             document.getElementById('battleResult').style.display = 'flex';
             document.getElementById('battleResult').style.background = win ? 'var(--win)' : 'var(--loss)';
             document.getElementById('resultTitle').innerText = win ? 'VICTORY' : 'DEFEAT';
