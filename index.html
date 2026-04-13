@@ -6,42 +6,33 @@
     <title>Pocket Duelists</title>
     <style>
         :root { --gold: #f1c40f; --win: #27ae60; --loss: #c0392b; --accent: #3498db; }
-        body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #121212; color: white; overflow: hidden; touch-action: none; text-transform: uppercase; }
+        body { margin: 0; font-family: 'Arial Black', sans-serif; background: #000; color: white; overflow: hidden; touch-action: none; text-transform: uppercase; }
         
-        /* Landscape Orientation Guard */
         #rotate-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         @media (orientation: portrait) { #rotate-overlay { display: flex; } }
 
-        /* Screens */
         .screen { display: none; width: 100vw; height: 100vh; flex-direction: column; align-items: center; justify-content: center; position: absolute; background: radial-gradient(circle, #2c3e50 0%, #000000 100%); }
         .active { display: flex; }
         
-        /* UI Elements */
-        h1 { font-size: 40px; margin-bottom: 10px; text-shadow: 3px 3px #000; color: var(--gold); }
-        button { padding: 12px 25px; margin: 8px; font-size: 16px; cursor: pointer; background: #e67e22; border: 4px solid #d35400; border-radius: 12px; color: white; font-weight: bold; transition: 0.2s; }
-        button:active { transform: scale(0.95); }
-        button:disabled { background: #7f8c8d; border-color: #95a5a6; cursor: not-allowed; }
-        
-        .top-bar { position: absolute; top: 15px; width: 90%; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
-        .stat-box { background: rgba(0,0,0,0.8); padding: 8px 15px; border-radius: 20px; border: 2px solid var(--gold); font-size: 18px; }
+        button { padding: 12px 20px; margin: 5px; font-size: 14px; cursor: pointer; background: #e67e22; border: 3px solid #d35400; border-radius: 10px; color: white; font-weight: bold; }
+        .top-bar { position: absolute; top: 10px; width: 95%; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
+        .stat-box { background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 15px; border: 2px solid var(--gold); }
 
-        /* Pocket Shop / Selection */
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 80%; max-height: 60%; overflow-y: auto; padding: 10px; }
-        .card { background: #34495e; padding: 15px; border-radius: 15px; border: 4px solid #555; text-align: center; }
-        .card.owned { border-color: var(--win); }
-        .card.selected { border-color: var(--gold); background: #2c3e50; box-shadow: 0 0 15px var(--gold); }
+        /* Shop Grid */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 90%; max-height: 55%; overflow-y: auto; }
+        .card { background: #34495e; padding: 10px; border-radius: 12px; border: 3px solid #555; text-align: center; font-size: 12px; }
+        .card.selected { border-color: var(--gold); background: #2c3e50; }
 
-        /* Game Arena */
-        #gameCanvas { background: #2ecc71; background-image: radial-gradient(#27ae60 20%, transparent 20%); background-size: 50px 50px; }
-        .joy-area { position: absolute; bottom: 30px; width: 110px; height: 110px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); }
-        .knob { width: 45px; height: 45px; background: rgba(255,255,255,0.7); border-radius: 50%; position: absolute; top: 32.5px; left: 32.5px; }
+        /* Arena UI */
+        #gameCanvas { background: #2ecc71; }
+        .joy-area { position: absolute; bottom: 25px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); }
+        .knob { width: 40px; height: 40px; background: rgba(255,255,255,0.7); border-radius: 50%; position: absolute; top: 30px; left: 30px; pointer-events: none; }
         
-        /* Results */
+        #super-btn { position: absolute; bottom: 130px; right: 40px; width: 60px; height: 60px; background: #555; border-radius: 50%; border: 4px solid #333; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; opacity: 0.5; }
+        #super-btn.ready { background: #f1c40f; border-color: #fff; opacity: 1; box-shadow: 0 0 15px #f1c40f; }
+
         #battleResult { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; }
-
-        /* Lists */
-        .scroll-list { width: 85%; height: 60%; overflow-y: auto; background: rgba(0,0,0,0.6); border-radius: 15px; padding: 10px; border: 2px solid #444; }
-        .list-item { background: #2c3e50; margin: 8px; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .scroll-list { width: 90%; height: 60%; overflow-y: auto; background: rgba(0,0,0,0.6); border-radius: 10px; padding: 5px; }
     </style>
 </head>
 <body>
@@ -54,7 +45,7 @@
             <div class="stat-box" id="m-coins">💰 0</div>
         </div>
         <h1>POCKET DUELISTS</h1>
-        <button onclick="showScreen('arena')" style="font-size: 32px; width: 220px; background: var(--win); border-color: #1e8449;">BATTLE</button>
+        <button onclick="showScreen('arena')" style="font-size: 28px; width: 200px; background: var(--win);">BATTLE</button>
         <div style="display:flex;">
             <button onclick="showScreen('pockets')">POCKETS</button>
             <button onclick="showScreen('trophyRoad')">ROAD</button>
@@ -63,59 +54,62 @@
     </div>
 
     <div id="pockets" class="screen">
-        <h2>YOUR POCKETS</h2>
+        <h2>POCKETS SHOP</h2>
         <div id="pockets-grid" class="grid"></div>
         <button onclick="showScreen('menu')">BACK</button>
     </div>
 
     <div id="trophyRoad" class="screen">
-        <h2>🏆 TROPHY ROAD</h2>
+        <h2>🏆 ROAD</h2>
         <div id="road-list" class="scroll-list"></div>
         <button onclick="showScreen('menu')">BACK</button>
     </div>
 
     <div id="battleLog" class="screen">
-        <h2>📜 BATTLE LOG</h2>
+        <h2>📜 LOG</h2>
         <div id="log-list" class="scroll-list"></div>
         <button onclick="showScreen('menu')">BACK</button>
     </div>
 
     <div id="arena" class="screen">
         <canvas id="gameCanvas"></canvas>
-        <div id="left-joy" class="joy-area" style="left: 50px;"><div id="l-knob" class="knob"></div></div>
-        <div id="right-joy" class="joy-area" style="right: 50px;"><div id="r-knob" class="knob"></div></div>
+        <div id="left-joy" class="joy-area" style="left: 40px;"><div id="l-knob" class="knob"></div></div>
+        <div id="right-joy" class="joy-area" style="right: 40px;"><div id="r-knob" class="knob"></div></div>
+        <div id="super-btn" onclick="useSuper()">SUPER</div>
         
         <div id="battleResult">
             <h1 id="resultTitle">VICTORY</h1>
-            <h2 id="resultStats">VS ENEMY</h2>
             <h1 id="resultChange">+10 🏆</h1>
             <button onclick="showScreen('menu')">CONTINUE</button>
         </div>
     </div>
 
     <script>
-        // GAME STATE
+        // DATA & STORAGE
         let trophies = parseInt(localStorage.getItem('pd_trophies')) || 0;
         let coins = parseInt(localStorage.getItem('pd_coins')) || 0;
         let ownedPockets = JSON.parse(localStorage.getItem('pd_owned')) || ['Shelly'];
         let selectedPocket = localStorage.getItem('pd_selected') || 'Shelly';
-        let claimedMilestones = JSON.parse(localStorage.getItem('pd_claimed')) || [];
+        let claimed = JSON.parse(localStorage.getItem('pd_claimed')) || [];
         let battleLog = JSON.parse(localStorage.getItem('pd_log')) || [];
 
         const pocketsData = [
-            { name: 'Shelly', color: '#3498db', speed: 4, cost: 0 },
-            { name: 'Colt', color: '#e74c3c', speed: 3.5, cost: 100 },
-            { name: 'Crow', color: '#8e44ad', speed: 5.5, cost: 250 },
-            { name: 'Primo', color: '#f1c40f', speed: 3, cost: 500 },
-            { name: 'Leon', color: '#2ecc71', speed: 6, cost: 1000 }
+            { name: 'Shelly', color: '#3498db', speed: 4, cost: 0, ult: 'Spread' },
+            { name: 'Colt', color: '#e74c3c', speed: 3.5, cost: 100, ult: 'Rapid' },
+            { name: 'Crow', color: '#8e44ad', speed: 5.5, cost: 250, ult: 'Boost' },
+            { name: 'Leon', color: '#2ecc71', speed: 6, cost: 500, ult: 'Invis' }
         ];
 
-        const enemyNames = ["DarkKnight", "BrawlBot", "ToxicPlayer", "NoobMaster", "SuperCell-Fan", "LeonPro"];
+        // ENGINE VARS
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let player, bot, bullets, obstacles, bushes, gameActive = false;
+        let superCharge = 0;
+        let touches = {};
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            document.getElementById('battleResult').style.display = 'none';
             if(id === 'menu') updateUI();
             if(id === 'pockets') renderPockets();
             if(id === 'trophyRoad') renderRoad();
@@ -132,161 +126,178 @@
 
         function renderPockets() {
             const grid = document.getElementById('pockets-grid');
-            grid.innerHTML = pocketsData.map(p => {
-                const isOwned = ownedPockets.includes(p.name);
-                const isSelected = selectedPocket === p.name;
-                return `
-                    <div class="card ${isSelected ? 'selected' : (isOwned ? 'owned' : '')}">
-                        <div style="width:40px;height:40px;background:${p.color};margin:0 auto 10px;border-radius:5px;"></div>
-                        <strong>${p.name}</strong><br>
-                        <small>SPD: ${p.speed}</small><br><br>
-                        ${isSelected ? 'SELECTED' : (isOwned ? `<button onclick="selectP('${p.name}')">SELECT</button>` : `<button onclick="buyP('${p.name}', ${p.cost})">💰 ${p.cost}</button>`)}
-                    </div>
-                `;
-            }).join('');
+            grid.innerHTML = pocketsData.map(p => `
+                <div class="card ${selectedPocket === p.name ? 'selected' : ''}">
+                    <strong>${p.name}</strong><br>
+                    ${ownedPockets.includes(p.name) ? 
+                        `<button onclick="selectP('${p.name}')">SELECT</button>` : 
+                        `<button onclick="buyP('${p.name}', ${p.cost})">💰 ${p.cost}</button>`}
+                </div>
+            `).join('');
         }
-
-        function selectP(name) { selectedPocket = name; localStorage.setItem('pd_selected', name); renderPockets(); }
-        function buyP(name, cost) {
-            if(coins >= cost) {
-                coins -= cost; ownedPockets.push(name);
-                localStorage.setItem('pd_owned', JSON.stringify(ownedPockets));
-                updateUI(); selectP(name);
-            } else { alert("NOT ENOUGH COINS!"); }
-        }
+        function selectP(n) { selectedPocket = n; localStorage.setItem('pd_selected', n); renderPockets(); }
+        function buyP(n, c) { if(coins >= c){ coins-=c; ownedPockets.push(n); localStorage.setItem('pd_owned', JSON.stringify(ownedPockets)); updateUI(); selectP(n); } }
 
         function renderRoad() {
             const list = document.getElementById('road-list');
             list.innerHTML = "";
-            for(let i = 10; i <= 1000; i += 20) {
-                const isClaimed = claimedMilestones.includes(i);
-                const canClaim = trophies >= i && !isClaimed;
-                list.innerHTML += `
-                    <div class="list-item" style="opacity: ${trophies >= i ? 1 : 0.5}">
-                        <span>${i} 🏆 - REWARD: 💰 50</span>
-                        <button onclick="claim(${i})" ${!canClaim ? 'disabled' : ''}>
-                            ${isClaimed ? 'CLAIMED' : (canClaim ? 'CLAIM' : 'LOCKED')}
-                        </button>
-                    </div>
-                `;
+            for(let i=20; i<=1000; i+=20) {
+                const isClaimed = claimed.includes(i);
+                list.innerHTML += `<div class="list-item" style="display:flex; justify-content:space-between; padding:10px; background:#2c3e50; margin:5px; border-radius:5px; opacity:${trophies>=i?1:0.5}">
+                    <span>${i} 🏆 - 💰 50</span>
+                    <button onclick="claim(${i})" ${trophies<i||isClaimed?'disabled':''}>${isClaimed?'DONE':'CLAIM'}</button>
+                </div>`;
             }
         }
-
-        function claim(m) {
-            coins += 50; claimedMilestones.push(m);
-            localStorage.setItem('pd_claimed', JSON.stringify(claimedMilestones));
-            updateUI(); renderRoad();
-        }
+        function claim(i) { coins+=50; claimed.push(i); localStorage.setItem('pd_claimed', JSON.stringify(claimed)); updateUI(); renderRoad(); }
 
         function renderLog() {
-            const list = document.getElementById('log-list');
-            list.innerHTML = battleLog.slice().reverse().map(l => `
-                <div class="list-item" style="border-left: 6px solid ${l.win ? 'var(--win)' : 'var(--loss)'}">
-                    <span>${l.win ? 'VICTORY' : 'LOSS'} vs ${l.enemy}</span>
-                    <span>${l.change > 0 ? '+' : ''}${l.change} 🏆</span>
-                </div>
-            `).join('');
+            document.getElementById('log-list').innerHTML = battleLog.slice().reverse().map(l => `<div style="padding:10px; margin:5px; background:#34495e; border-radius:5px;">${l.win?'WIN':'LOSS'} | ${l.change} 🏆</div>`).join('');
         }
 
-        // BATTLE SYSTEM
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        let player, bot, bullets, gameActive = false;
-        let joyL = { x: 0, y: 0, active: false }, joyR = { x: 0, y: 0, active: false, angle: 0 };
+        // INPUT HANDLING (Multi-touch)
+        window.addEventListener('touchstart', e => { Array.from(e.changedTouches).forEach(t => { touches[t.identifier] = { x: t.clientX, y: t.clientY, startX: t.clientX, startY: t.clientY, target: t.target.id }; }); });
+        window.addEventListener('touchmove', e => { Array.from(e.changedTouches).forEach(t => { if(touches[t.identifier]) { touches[t.identifier].x = t.clientX; touches[t.identifier].y = t.clientY; } }); });
+        window.addEventListener('touchend', e => { Array.from(e.changedTouches).forEach(t => { 
+            let touch = touches[t.identifier];
+            if(touch && touch.target === 'right-joy') {
+                let dist = Math.sqrt((touch.x - touch.startX)**2 + (touch.y - touch.startY)**2);
+                if(dist < 20) quickFire(); // QUICKFIRE
+                else {
+                    let angle = Math.atan2(touch.y - touch.startY, touch.x - touch.startX);
+                    shoot(player, angle);
+                }
+            }
+            delete touches[t.identifier]; 
+        }); });
 
+        // BATTLE ENGINE
         function initBattle() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             const pData = pocketsData.find(p => p.name === selectedPocket);
-            player = { x: 150, y: canvas.height/2, r: 25, color: pData.color, hp: 100, speed: pData.speed };
-            bot = { x: canvas.width - 150, y: canvas.height/2, r: 25, color: 'red', hp: 100, speed: 2.5, name: enemyNames[Math.floor(Math.random()*enemyNames.length)] };
-            bullets = [];
-            gameActive = true;
-            gameLoop();
+            player = { x: 100, y: canvas.height/2, r: 22, color: pData.color, hp: 100, speed: pData.speed, visible: true };
+            bot = { x: canvas.width-100, y: canvas.height/2, r: 22, color: 'red', hp: 100, speed: 2.5, visible: true };
+            bullets = []; superCharge = 0;
+            
+            // Map objects
+            obstacles = [{x: canvas.width/2-25, y: canvas.height/2-100, w: 50, h: 200}];
+            bushes = [{x: 200, y: 100, w: 100, h: 100}, {x: canvas.width-300, y: canvas.height-200, w: 100, h: 100}];
+            
+            gameActive = true; gameLoop();
         }
 
-        function handleJoy(e, joy, knobId) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const area = e.currentTarget.getBoundingClientRect();
-            const centerX = area.left + area.width/2;
-            const centerY = area.top + area.height/2;
-            let dx = touch.clientX - centerX;
-            let dy = touch.clientY - centerY;
-            const dist = Math.min(45, Math.sqrt(dx*dx + dy*dy));
-            const angle = Math.atan2(dy, dx);
-            joy.x = Math.cos(angle) * (dist/45);
-            joy.y = Math.sin(angle) * (dist/45);
-            joy.angle = angle;
-            joy.active = true;
-            document.getElementById(knobId).style.transform = `translate(${joy.x*35}px, ${joy.y*35}px)`;
+        function quickFire() {
+            let angle = Math.atan2(bot.y - player.y, bot.x - player.x);
+            shoot(player, angle);
         }
 
-        document.getElementById('left-joy').ontouchmove = (e) => handleJoy(e, joyL, 'l-knob');
-        document.getElementById('right-joy').ontouchmove = (e) => handleJoy(e, joyR, 'r-knob');
-        document.getElementById('right-joy').ontouchend = () => { if(joyR.active) shoot(player, joyR.angle); joyR.active = false; document.getElementById('r-knob').style.transform = 'translate(0,0)'; };
-        document.getElementById('left-joy').ontouchend = () => { joyL.active = false; joyL.x = 0; joyL.y = 0; document.getElementById('l-knob').style.transform = 'translate(0,0)'; };
+        function useSuper() {
+            if(superCharge < 100) return;
+            superCharge = 0;
+            const pData = pocketsData.find(p => p.name === selectedPocket);
+            if(pData.ult === 'Spread') {
+                for(let i=-0.5; i<=0.5; i+=0.25) shoot(player, Math.atan2(bot.y-player.y, bot.x-player.x) + i);
+            } else if(pData.ult === 'Boost') {
+                player.speed *= 2; setTimeout(() => player.speed /= 2, 4000);
+            }
+            document.getElementById('super-btn').classList.remove('ready');
+        }
 
-        function shoot(who, angle) { bullets.push({ x: who.x, y: who.y, vx: Math.cos(angle)*10, vy: Math.sin(angle)*10, owner: who }); }
+        function shoot(who, angle) {
+            bullets.push({ x: who.x, y: who.y, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12, owner: who });
+            who.visible = true; // Reveal if in bush
+        }
 
         function gameLoop() {
             if(!gameActive) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0,0,canvas.width, canvas.height);
 
-            // Move Player
-            player.x = Math.max(player.r, Math.min(canvas.width - player.r, player.x + joyL.x * player.speed));
-            player.y = Math.max(player.r, Math.min(canvas.height - player.r, player.y + joyL.y * player.speed));
+            // Controls
+            let joyL = Object.values(touches).find(t => t.target === 'left-joy');
+            let lKnob = document.getElementById('l-knob');
+            if(joyL) {
+                let dx = joyL.x - joyL.startX; let dy = joyL.y - joyL.startY;
+                let dist = Math.min(40, Math.sqrt(dx*dx + dy*dy));
+                let angle = Math.atan2(dy, dx);
+                let moveX = Math.cos(angle)*(dist/40)*player.speed;
+                let moveY = Math.sin(angle)*(dist/40)*player.speed;
+                if(!checkWall(player.x + moveX, player.y + moveY)) { player.x += moveX; player.y += moveY; }
+                lKnob.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+            } else { lKnob.style.transform = 'translate(0,0)'; }
+
+            // Logic
+            botAI();
+            updateBullets();
+            checkBushes();
+
+            // Render
+            bushes.forEach(b => { ctx.fillStyle = '#1b5e20'; ctx.fillRect(b.x, b.y, b.w, b.h); });
+            obstacles.forEach(o => { ctx.fillStyle = '#5d4037'; ctx.fillRect(o.x, o.y, o.w, o.h); });
             
-            // Bot AI
-            let dBot = Math.sqrt((player.x-bot.x)**2 + (player.y-bot.y)**2);
-            if(dBot > 220) { bot.x += (player.x-bot.x)/dBot * bot.speed; bot.y += (player.y-bot.y)/dBot * bot.speed; }
-            if(Math.random() < 0.02) shoot(bot, Math.atan2(player.y-bot.y, player.x-bot.x));
+            if(player.visible) drawUnit(player); else { ctx.globalAlpha = 0.3; drawUnit(player); ctx.globalAlpha = 1; }
+            if(bot.visible) drawUnit(bot); else { ctx.globalAlpha = 0.3; drawUnit(bot); ctx.globalAlpha = 1; }
 
+            // Super UI
+            document.getElementById('super-btn').style.background = `linear-gradient(0deg, #f1c40f ${superCharge}%, #555 ${superCharge}%)`;
+            if(superCharge >= 100) document.getElementById('super-btn').classList.add('ready');
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function checkWall(nx, ny) {
+            return obstacles.some(o => nx+15 > o.x && nx-15 < o.x+o.w && ny+15 > o.y && ny-15 < o.y+o.h);
+        }
+
+        function checkBushes() {
+            player.visible = !bushes.some(b => player.x > b.x && player.x < b.x+b.w && player.y > b.y && player.y < b.y+b.w);
+            bot.visible = !bushes.some(b => bot.x > b.x && bot.x < b.x+b.w && bot.y > b.y && bot.y < b.y+b.w);
+        }
+
+        function botAI() {
+            let d = Math.sqrt((player.x-bot.x)**2 + (player.y-bot.y)**2);
+            if(d > 200 && player.visible) {
+                let angle = Math.atan2(player.y-bot.y, player.x-bot.x);
+                bot.x += Math.cos(angle)*bot.speed; bot.y += Math.sin(angle)*bot.speed;
+            }
+            if(Math.random() < 0.01 && player.visible) shoot(bot, Math.atan2(player.y-bot.y, player.x-bot.x));
+        }
+
+        function updateBullets() {
             bullets.forEach((b, i) => {
                 b.x += b.vx; b.y += b.vy;
-                ctx.fillStyle = b.owner === player ? 'white' : 'orange';
-                ctx.beginPath(); ctx.arc(b.x, b.y, 6, 0, Math.PI*2); ctx.fill();
-                let target = b.owner === player ? bot : player;
-                if(Math.sqrt((b.x-target.x)**2 + (b.y-target.y)**2) < target.r) { 
-                    target.hp -= 20; bullets.splice(i, 1); 
-                    if(target.hp <= 0) finishGame(b.owner === player); 
-                }
-                if(b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) bullets.splice(i, 1);
-            });
+                ctx.fillStyle = b.owner === player ? 'white' : 'yellow';
+                ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill();
 
-            drawUnit(player); drawUnit(bot);
-            if(joyR.active) {
-                ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(player.x, player.y);
-                ctx.lineTo(player.x + Math.cos(joyR.angle)*120, player.y + Math.sin(joyR.angle)*120); ctx.stroke();
-            }
-            requestAnimationFrame(gameLoop);
+                if(checkWall(b.x, b.y)) bullets.splice(i, 1);
+                let target = b.owner === player ? bot : player;
+                if(Math.sqrt((b.x-target.x)**2 + (b.y-target.y)**2) < target.r) {
+                    target.hp -= 20; bullets.splice(i, 1);
+                    if(b.owner === player) { superCharge = Math.min(100, superCharge + 34); }
+                    if(target.hp <= 0) finish(b.owner === player);
+                }
+            });
         }
 
         function drawUnit(u) {
             ctx.fillStyle = u.color; ctx.beginPath(); ctx.arc(u.x, u.y, u.r, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
-            ctx.fillStyle = "black"; ctx.fillRect(u.x-25, u.y-45, 50, 10);
-            ctx.fillStyle = u.hp > 30 ? "lime" : "red"; ctx.fillRect(u.x-25, u.y-45, (u.hp/100)*50, 10);
+            ctx.fillStyle = "black"; ctx.fillRect(u.x-20, u.y-35, 40, 6);
+            ctx.fillStyle = "lime"; ctx.fillRect(u.x-20, u.y-35, (u.hp/100)*40, 6);
         }
 
-        function finishGame(win) {
+        function finish(win) {
             gameActive = false;
             let change = win ? 10 : -8;
             trophies = Math.max(0, trophies + change);
-            battleLog.push({ win, enemy: bot.name, change });
-            localStorage.setItem('pd_log', JSON.stringify(battleLog.slice(-20))); // Keep last 20
-            
-            const res = document.getElementById('battleResult');
-            res.style.display = 'flex';
-            res.style.background = win ? 'rgba(39, 174, 96, 0.95)' : 'rgba(192, 57, 43, 0.95)';
-            document.getElementById('resultTitle').innerText = win ? 'VICTORY!' : 'DEFEAT!';
-            document.getElementById('resultStats').innerText = `VS ${bot.name}`;
-            document.getElementById('resultChange').innerText = `${change > 0 ? '+' : ''}${change} 🏆`;
+            battleLog.push({ win, change });
+            localStorage.setItem('pd_log', JSON.stringify(battleLog));
+            document.getElementById('battleResult').style.display = 'flex';
+            document.getElementById('battleResult').style.background = win ? 'var(--win)' : 'var(--loss)';
+            document.getElementById('resultTitle').innerText = win ? 'VICTORY' : 'DEFEAT';
+            document.getElementById('resultChange').innerText = `${change>0?'+':''}${change} 🏆`;
             updateUI();
         }
 
         updateUI();
     </script>
 </body>
-  </html>
-
+</html>
