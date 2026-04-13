@@ -1,4 +1,4 @@
-# ⚔️ Pocket Duelists PRO
+# ⚔️ Pocket Duelists
 
 A fast-paced, 1v1 mobile arena brawler built entirely in JavaScript. Battle against AI, collect trophies, earn coins, and unlock unique "Pockets" (heroes) with special abilities!
 
