@@ -3,29 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pocket Duelists</title>
+    <title>Pocket Duelists FINAL</title>
     <style>
         :root { --gold: #f1c40f; --win: #27ae60; --loss: #c0392b; --accent: #3498db; }
         body { margin: 0; font-family: 'Arial Black', sans-serif; background: #000; color: white; overflow: hidden; touch-action: none; text-transform: uppercase; }
         
-        /* Orientation Guard */
         #rotate-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         @media (orientation: portrait) { #rotate-overlay { display: flex; } }
 
         .screen { display: none; width: 100vw; height: 100vh; flex-direction: column; align-items: center; justify-content: center; position: absolute; background: radial-gradient(circle, #2c3e50 0%, #000000 100%); }
         .active { display: flex; }
         
-        /* UI Buttons & Stats */
         button { padding: 12px 20px; margin: 5px; font-size: 14px; cursor: pointer; background: #e67e22; border: 3px solid #d35400; border-radius: 10px; color: white; font-weight: bold; }
         .top-bar { position: absolute; top: 10px; width: 95%; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
-        .stat-box { background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 15px; border: 2px solid var(--gold); }
+        .stat-box { background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 15px; border: 2px solid var(--gold); pointer-events: auto; }
 
-        /* Shop Grid */
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 90%; max-height: 55%; overflow-y: auto; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 90%; max-height: 55%; overflow-y: auto; padding: 10px; }
         .card { background: #34495e; padding: 10px; border-radius: 12px; border: 3px solid #555; text-align: center; }
-        .card.selected { border-color: var(--gold); background: #2c3e50; box-shadow: 0 0 10px var(--gold); }
+        .card.selected { border-color: var(--gold); background: #2c3e50; }
 
-        /* Arena Elements */
         #gameCanvas { background: #2ecc71; }
         .joy-area { position: absolute; bottom: 30px; width: 110px; height: 110px; background: rgba(255,255,255,0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); z-index: 50; }
         .knob { width: 45px; height: 45px; background: rgba(255,255,255,0.7); border-radius: 50%; position: absolute; top: 32.5px; left: 32.5px; pointer-events: none; }
@@ -39,7 +35,7 @@
 </head>
 <body>
 
-    <div id="rotate-overlay"><h1>🔄 ROTATE TO LANDSCAPE</h1></div>
+    <div id="rotate-overlay"><h1>ROTATE TO LANDSCAPE</h1></div>
 
     <div id="menu" class="screen active">
         <div class="top-bar">
@@ -56,7 +52,7 @@
     </div>
 
     <div id="pockets" class="screen">
-        <h2>HERO SHOP</h2>
+        <h2>POCKETS SHOP</h2>
         <div id="pockets-grid" class="grid"></div>
         <button onclick="showScreen('menu')">BACK</button>
     </div>
@@ -87,7 +83,7 @@
     </div>
 
     <script>
-        // --- GAME DATA ---
+        // --- DATA & SAVING ---
         let trophies = parseInt(localStorage.getItem('pd_trophies')) || 0;
         let coins = parseInt(localStorage.getItem('pd_coins')) || 0;
         let ownedPockets = JSON.parse(localStorage.getItem('pd_owned')) || ['Shelly'];
@@ -102,12 +98,7 @@
             { name: 'Leon', color: '#2ecc71', speed: 6, cost: 500, ult: 'Invis' }
         ];
 
-        // --- ENGINE VARS ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        let player, bot, bullets = [], obstacles = [], bushes = [], gameActive = false;
-        let superCharge = 0, touches = {};
-
+        // --- CORE FUNCTIONS ---
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -127,65 +118,74 @@
 
         function renderPockets() {
             const grid = document.getElementById('pockets-grid');
-            grid.innerHTML = pocketsData.map(p => `
-                <div class="card ${selectedPocket === p.name ? 'selected' : ''}">
-                    <strong>${p.name}</strong><br>
-                    <div style="width:30px;height:30px;background:${p.color};margin:5px auto;border-radius:50%"></div>
-                    ${ownedPockets.includes(p.name) ? 
-                        `<button onclick="selectP('${p.name}')">SELECT</button>` : 
-                        `<button onclick="buyP('${p.name}', ${p.cost})">💰 ${p.cost}</button>`}
-                </div>
-            `).join('');
+            grid.innerHTML = pocketsData.map(p => {
+                const isOwned = ownedPockets.includes(p.name);
+                const isSelected = selectedPocket === p.name;
+                return `
+                    <div class="card ${isSelected ? 'selected' : ''}">
+                        <strong>${p.name}</strong>
+                        <div style="width:30px;height:30px;background:${p.color};margin:10px auto;border-radius:50%;border:2px solid white;"></div>
+                        ${isOwned ? 
+                            `<button onclick="selectP('${p.name}')">${isSelected ? 'SELECTED' : 'SELECT'}</button>` : 
+                            `<button onclick="buyP('${p.name}', ${p.cost})">💰 ${p.cost}</button>`}
+                    </div>
+                `;
+            }).join('');
         }
+
         function selectP(n) { selectedPocket = n; localStorage.setItem('pd_selected', n); renderPockets(); }
-        function buyP(n, c) { if(coins >= c){ coins-=c; ownedPockets.push(n); localStorage.setItem('pd_owned', JSON.stringify(ownedPockets)); updateUI(); selectP(n); } }
+        function buyP(n, c) {
+            if(coins >= c) {
+                coins -= c; ownedPockets.push(n);
+                localStorage.setItem('pd_owned', JSON.stringify(ownedPockets));
+                updateUI(); selectP(n);
+            } else { alert("Not enough coins!"); }
+        }
 
         function renderRoad() {
             const list = document.getElementById('road-list');
             list.innerHTML = "";
             for(let i=20; i<=1000; i+=20) {
                 const isClaimed = claimed.includes(i);
-                list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:15px; background:#34495e; margin:5px; border-radius:8px; opacity:${trophies>=i?1:0.4}">
-                    <span>${i} 🏆 - 💰 50</span>
-                    <button onclick="claim(${i})" ${trophies<i||isClaimed?'disabled':''}>${isClaimed?'CLAIMED':'CLAIM'}</button>
-                </div>`;
+                list.innerHTML += `
+                    <div style="display:flex;justify-content:space-between;padding:15px;background:#34495e;margin:5px;border-radius:8px;opacity:${trophies>=i?1:0.4}">
+                        <span>${i} 🏆 - 💰 50</span>
+                        <button onclick="claim(${i})" ${trophies<i||isClaimed?'disabled':''}>${isClaimed?'CLAIMED':'CLAIM'}</button>
+                    </div>`;
             }
         }
-        function claim(i) { coins+=50; claimed.push(i); localStorage.setItem('pd_claimed', JSON.stringify(claimed)); updateUI(); renderRoad(); }
+        function claim(i) { coins += 50; claimed.push(i); localStorage.setItem('pd_claimed', JSON.stringify(claimed)); updateUI(); renderRoad(); }
 
         function renderLog() {
-            document.getElementById('log-list').innerHTML = battleLog.slice().reverse().map(l => `<div style="padding:10px; margin:5px; background:#2c3e50; border-radius:5px; border-left:5px solid ${l.win?'#27ae60':'#c0392b'}">${l.win?'WIN':'LOSS'} | ${l.change} 🏆</div>`).join('');
+            document.getElementById('log-list').innerHTML = battleLog.slice().reverse().map(l => `
+                <div style="padding:10px;margin:5px;background:#2c3e50;border-radius:5px;border-left:5px solid ${l.win?'#27ae60':'#c0392b'}">
+                    ${l.win?'VICTORY':'DEFEAT'} | ${l.change > 0 ? '+':''}${l.change} 🏆
+                </div>`).join('');
         }
 
-        // --- INPUT (MULTI-TOUCH) ---
+        // --- GAME ENGINE ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let player, bot, bullets = [], obstacles = [], bushes = [], gameActive = false;
+        let superCharge = 0, touches = {};
+
         window.addEventListener('touchstart', e => {
             Array.from(e.changedTouches).forEach(t => {
                 const joy = t.target.closest('.joy-area');
-                touches[t.identifier] = { 
-                    startX: t.clientX, startY: t.clientY, 
-                    curX: t.clientX, curY: t.clientY, 
-                    target: joy ? joy.id : null 
-                };
+                touches[t.identifier] = { startX: t.clientX, startY: t.clientY, curX: t.clientX, curY: t.clientY, target: joy ? joy.id : null };
             });
         });
 
         window.addEventListener('touchmove', e => {
-            Array.from(e.changedTouches).forEach(t => {
-                if(touches[t.identifier]) {
-                    touches[t.identifier].curX = t.clientX;
-                    touches[t.identifier].curY = t.clientY;
-                }
-            });
+            Array.from(e.changedTouches).forEach(t => { if(touches[t.identifier]) { touches[t.identifier].curX = t.clientX; touches[t.identifier].curY = t.clientY; } });
         });
 
         window.addEventListener('touchend', e => {
             Array.from(e.changedTouches).forEach(t => {
                 let touch = touches[t.identifier];
                 if(touch && touch.target === 'right-joy') {
-                    let dx = touch.curX - touch.startX;
-                    let dy = touch.curY - touch.startY;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-                    if(dist < 15) quickFire();
+                    let dx = touch.curX - touch.startX; let dy = touch.curY - touch.startY;
+                    if(Math.sqrt(dx*dx + dy*dy) < 15) shoot(player, Math.atan2(bot.y - player.y, bot.x - player.x));
                     else shoot(player, Math.atan2(dy, dx));
                     document.getElementById('r-knob').style.transform = 'translate(0,0)';
                 }
@@ -194,7 +194,6 @@
             });
         });
 
-        // --- BATTLE LOGIC ---
         function initBattle() {
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             const pData = pocketsData.find(p => p.name === selectedPocket);
@@ -206,33 +205,30 @@
             gameActive = true; gameLoop();
         }
 
-        function quickFire() { shoot(player, Math.atan2(bot.y - player.y, bot.x - player.x)); }
+        function shoot(who, angle) {
+            bullets.push({ x: who.x, y: who.y, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12, owner: who });
+            who.visible = true;
+        }
 
         function useSuper() {
             if(superCharge < 100) return;
             superCharge = 0;
             const pData = pocketsData.find(p => p.name === selectedPocket);
-            if(pData.ult === 'Spread') { for(let a=-0.4; a<=0.4; a+=0.2) shoot(player, Math.atan2(bot.y-player.y, bot.x-player.x)+a); }
+            let angle = Math.atan2(bot.y-player.y, bot.x-player.x);
+            if(pData.ult === 'Spread') { for(let a=-0.4; a<=0.4; a+=0.2) shoot(player, angle+a); }
             else if(pData.ult === 'Boost') { player.speed *= 1.8; setTimeout(()=>player.speed /= 1.8, 5000); }
-            else if(pData.ult === 'Rapid') { let c=0; let iv = setInterval(()=>{shoot(player, Math.atan2(bot.y-player.y, bot.x-player.x)); c++; if(c>5)clearInterval(iv)}, 100); }
+            else if(pData.ult === 'Rapid') { let c=0; let iv = setInterval(()=>{shoot(player, angle); c++; if(c>5)clearInterval(iv)}, 100); }
             document.getElementById('super-btn').classList.remove('ready');
-        }
-
-        function shoot(who, angle) {
-            bullets.push({ x: who.x, y: who.y, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12, owner: who });
-            who.visible = true;
         }
 
         function gameLoop() {
             if(!gameActive) return;
             ctx.clearRect(0,0,canvas.width, canvas.height);
 
-            // Handle Joysticks
             Object.values(touches).forEach(t => {
                 let dx = t.curX - t.startX; let dy = t.curY - t.startY;
                 let dist = Math.min(45, Math.sqrt(dx*dx + dy*dy));
                 let angle = Math.atan2(dy, dx);
-
                 if(t.target === 'left-joy') {
                     let mx = Math.cos(angle)*(dist/45)*player.speed;
                     let my = Math.sin(angle)*(dist/45)*player.speed;
@@ -246,18 +242,10 @@
                 }
             });
 
-            // Bot AI
-            let dBot = Math.sqrt((player.x-bot.x)**2 + (player.y-bot.y)**2);
-            if(dBot > 220 && player.visible) {
-                let a = Math.atan2(player.y-bot.y, player.x-bot.x);
-                bot.x += Math.cos(a)*bot.speed; bot.y += Math.sin(a)*bot.speed;
-            }
-            if(Math.random()<0.015 && player.visible) shoot(bot, Math.atan2(player.y-bot.y, player.x-bot.x));
-
-            // Bullets & Collision
+            // Bullets
             bullets.forEach((b, i) => {
                 b.x+=b.vx; b.y+=b.vy;
-                ctx.fillStyle = b.owner === player ? 'white' : '#f1c40f';
+                ctx.fillStyle = b.owner === player ? 'white' : 'yellow';
                 ctx.beginPath(); ctx.arc(b.x, b.y, 6, 0, Math.PI*2); ctx.fill();
                 if(checkWall(b.x, b.y)) bullets.splice(i,1);
                 let target = b.owner === player ? bot : player;
@@ -268,31 +256,33 @@
                 }
             });
 
-            // Visibility
-            player.visible = !bushes.some(b => player.x>b.x && player.x<b.x+b.w && player.y>b.y && player.y<b.y+b.h);
-            bot.visible = !bushes.some(b => bot.x>b.x && bot.x<b.x+b.w && bot.y>b.y && bot.y<b.y+b.h);
+            // Bot AI
+            if(player.visible) {
+                let a = Math.atan2(player.y-bot.y, player.x-bot.x);
+                if(Math.sqrt((player.x-bot.x)**2 + (player.y-bot.y)**2) > 200) { bot.x += Math.cos(a)*bot.speed; bot.y += Math.sin(a)*bot.speed; }
+                if(Math.random()<0.01) shoot(bot, a);
+            }
 
-            // Draw Map
+            // Draw
             bushes.forEach(b => { ctx.fillStyle = '#1b5e20'; ctx.fillRect(b.x, b.y, b.w, b.h); });
             obstacles.forEach(o => { ctx.fillStyle = '#5d4037'; ctx.fillRect(o.x, o.y, o.w, o.h); });
             
+            player.visible = !bushes.some(b => player.x>b.x && player.x<b.x+b.w && player.y>b.y && player.y<b.y+b.h);
+            bot.visible = !bushes.some(b => bot.x>b.x && bot.x<b.x+b.w && bot.y>b.y && bot.y<b.y+b.h);
+
             ctx.globalAlpha = player.visible ? 1 : 0.4; drawUnit(player);
             ctx.globalAlpha = bot.visible ? 1 : 0.4; drawUnit(bot);
             ctx.globalAlpha = 1;
 
-            // Super UI Update
-            const sBtn = document.getElementById('super-btn');
-            sBtn.style.background = `linear-gradient(0deg, #f1c40f ${superCharge}%, #444 ${superCharge}%)`;
-            if(superCharge >= 100) sBtn.classList.add('ready');
+            document.getElementById('super-btn').style.background = `linear-gradient(0deg, #f1c40f ${superCharge}%, #444 ${superCharge}%)`;
+            if(superCharge >= 100) document.getElementById('super-btn').classList.add('ready');
 
             requestAnimationFrame(gameLoop);
         }
 
         function checkWall(nx, ny) { return obstacles.some(o => nx+15>o.x && nx-15<o.x+o.w && ny+15>o.y && ny-15<o.y+o.h); }
-
         function drawUnit(u) {
             ctx.fillStyle = u.color; ctx.beginPath(); ctx.arc(u.x, u.y, u.r, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
             ctx.fillStyle = "black"; ctx.fillRect(u.x-25, u.y-45, 50, 8);
             ctx.fillStyle = u.hp > 30 ? "#2ecc71" : "#e74c3c"; ctx.fillRect(u.x-25, u.y-45, (u.hp/100)*50, 8);
         }
