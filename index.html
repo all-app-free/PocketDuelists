@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pocket Duelists</title>
+    <title>Pocket Duelists FINAL FIX</title>
     <style>
         :root { --gold: #f1c40f; --win: #27ae60; --loss: #c0392b; --accent: #3498db; }
         body { margin: 0; font-family: 'Arial Black', sans-serif; background: #000; color: white; overflow: hidden; touch-action: none; text-transform: uppercase; }
@@ -35,7 +35,7 @@
 </head>
 <body>
 
-    <div id="rotate-overlay"><h1>ROTATE TO LANDSCAPE</h1></div>
+    <div id="rotate-overlay"><h1>🔄 ROTATE TO LANDSCAPE</h1></div>
 
     <div id="menu" class="screen active">
         <div class="top-bar">
@@ -76,14 +76,13 @@
         <div id="super-btn" onclick="useSuper()">SUPER</div>
         
         <div id="battleResult">
-            <h1 id="resultTitle">VICTORY</h1>
-            <h1 id="resultChange">+10 🏆</h1>
+            <h1 id="resultTitle">RESULT</h1>
+            <h1 id="resultChange">+0 🏆</h1>
             <button onclick="showScreen('menu')">CONTINUE</button>
         </div>
     </div>
 
     <script>
-        // --- DATA & SAVING ---
         let trophies = parseInt(localStorage.getItem('pd_trophies')) || 0;
         let coins = parseInt(localStorage.getItem('pd_coins')) || 0;
         let ownedPockets = JSON.parse(localStorage.getItem('pd_owned')) || ['Shelly'];
@@ -98,7 +97,6 @@
             { name: 'Leon', color: '#2ecc71', speed: 6, cost: 500, ult: 'Invis' }
         ];
 
-        // --- CORE FUNCTIONS ---
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -128,8 +126,7 @@
                         ${isOwned ? 
                             `<button onclick="selectP('${p.name}')">${isSelected ? 'SELECTED' : 'SELECT'}</button>` : 
                             `<button onclick="buyP('${p.name}', ${p.cost})">💰 ${p.cost}</button>`}
-                    </div>
-                `;
+                    </div>`;
             }).join('');
         }
 
@@ -139,7 +136,7 @@
                 coins -= c; ownedPockets.push(n);
                 localStorage.setItem('pd_owned', JSON.stringify(ownedPockets));
                 updateUI(); selectP(n);
-            } else { alert("Not enough coins!"); }
+            }
         }
 
         function renderRoad() {
@@ -147,11 +144,10 @@
             list.innerHTML = "";
             for(let i=20; i<=1000; i+=20) {
                 const isClaimed = claimed.includes(i);
-                list.innerHTML += `
-                    <div style="display:flex;justify-content:space-between;padding:15px;background:#34495e;margin:5px;border-radius:8px;opacity:${trophies>=i?1:0.4}">
-                        <span>${i} 🏆 - 💰 50</span>
-                        <button onclick="claim(${i})" ${trophies<i||isClaimed?'disabled':''}>${isClaimed?'CLAIMED':'CLAIM'}</button>
-                    </div>`;
+                list.innerHTML += `<div style="display:flex;justify-content:space-between;padding:15px;background:#34495e;margin:5px;border-radius:8px;opacity:${trophies>=i?1:0.4}">
+                    <span>${i} 🏆 - 💰 50</span>
+                    <button onclick="claim(${i})" ${trophies<i||isClaimed?'disabled':''}>${isClaimed?'CLAIMED':'CLAIM'}</button>
+                </div>`;
             }
         }
         function claim(i) { coins += 50; claimed.push(i); localStorage.setItem('pd_claimed', JSON.stringify(claimed)); updateUI(); renderRoad(); }
@@ -163,7 +159,6 @@
                 </div>`).join('');
         }
 
-        // --- GAME ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let player, bot, bullets = [], obstacles = [], bushes = [], gameActive = false;
@@ -195,14 +190,21 @@
         });
 
         function initBattle() {
+            // KLÍČOVÁ OPRAVA: Schovat výsledek a resetovat vše
+            document.getElementById('battleResult').style.display = 'none';
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            
             const pData = pocketsData.find(p => p.name === selectedPocket);
             player = { x: 150, y: canvas.height/2, r: 25, color: pData.color, hp: 100, speed: pData.speed, visible: true };
             bot = { x: canvas.width-150, y: canvas.height/2, r: 25, color: 'red', hp: 100, speed: 2.8, visible: true };
-            bullets = []; superCharge = 0;
+            
+            bullets = []; 
+            superCharge = 0;
             obstacles = [{x: canvas.width/2-25, y: canvas.height/2-100, w: 50, h: 200}];
             bushes = [{x: 250, y: 150, w: 120, h: 120}, {x: canvas.width-370, y: canvas.height-270, w: 120, h: 120}];
-            gameActive = true; gameLoop();
+            
+            gameActive = true; 
+            requestAnimationFrame(gameLoop);
         }
 
         function shoot(who, angle) {
@@ -242,7 +244,6 @@
                 }
             });
 
-            // Bullets
             bullets.forEach((b, i) => {
                 b.x+=b.vx; b.y+=b.vy;
                 ctx.fillStyle = b.owner === player ? 'white' : 'yellow';
@@ -252,18 +253,16 @@
                 if(Math.sqrt((b.x-target.x)**2 + (b.y-target.y)**2) < target.r) {
                     target.hp -= 20; bullets.splice(i,1);
                     if(b.owner === player) superCharge = Math.min(100, superCharge + 25);
-                    if(target.hp <= 0) finish(b.owner === player);
+                    if(target.hp <= 0 && gameActive) finish(b.owner === player);
                 }
             });
 
-            // Bot AI
-            if(player.visible) {
+            if(player.visible && gameActive) {
                 let a = Math.atan2(player.y-bot.y, player.x-bot.x);
                 if(Math.sqrt((player.x-bot.x)**2 + (player.y-bot.y)**2) > 200) { bot.x += Math.cos(a)*bot.speed; bot.y += Math.sin(a)*bot.speed; }
                 if(Math.random()<0.01) shoot(bot, a);
             }
 
-            // Draw
             bushes.forEach(b => { ctx.fillStyle = '#1b5e20'; ctx.fillRect(b.x, b.y, b.w, b.h); });
             obstacles.forEach(o => { ctx.fillStyle = '#5d4037'; ctx.fillRect(o.x, o.y, o.w, o.h); });
             
@@ -277,7 +276,7 @@
             document.getElementById('super-btn').style.background = `linear-gradient(0deg, #f1c40f ${superCharge}%, #444 ${superCharge}%)`;
             if(superCharge >= 100) document.getElementById('super-btn').classList.add('ready');
 
-            requestAnimationFrame(gameLoop);
+            if(gameActive) requestAnimationFrame(gameLoop);
         }
 
         function checkWall(nx, ny) { return obstacles.some(o => nx+15>o.x && nx-15<o.x+o.w && ny+15>o.y && ny-15<o.y+o.h); }
@@ -293,13 +292,14 @@
             trophies = Math.max(0, trophies + change);
             battleLog.push({ win, change });
             localStorage.setItem('pd_log', JSON.stringify(battleLog.slice(-15)));
-            document.getElementById('battleResult').style.display = 'flex';
-            document.getElementById('battleResult').style.background = win ? 'var(--win)' : 'var(--loss)';
+            
+            const res = document.getElementById('battleResult');
+            res.style.display = 'flex';
+            res.style.background = win ? 'var(--win)' : 'var(--loss)';
             document.getElementById('resultTitle').innerText = win ? 'VICTORY' : 'DEFEAT';
             document.getElementById('resultChange').innerText = `${change>0?'+':''}${change} 🏆`;
             updateUI();
         }
-
         updateUI();
     </script>
 </body>
